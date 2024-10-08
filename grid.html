@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>R1fon - Cartela</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/128/2130/2130070.png" type="image/x-icon">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+        h2 {
+            color: #067850;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            max-width: 600px;
+            margin: 0 auto;
+            justify-content: center;
+            margin-top: 10px;
+            margin-bottom: 20px; /* Aumentado o espaçamento entre o grid e o botão */
+        }
+        .grid-item {
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 24px;
+            color: #333;
+            background-color: #fff;
+            transition: background-color 0.3s, transform 0.3s;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .grid-item:hover {
+            transform: scale(1.05);
+        }
+        .selected {
+            background-color: #009833;
+            border: 2px solid #009833;
+            color: #fff;
+        }
+        .reserved {
+            background-color: rgb(173, 0, 0);
+            border: 2px solid rgb(173, 0, 0);
+            color: #fff;
+            pointer-events: none;
+        }
+        .reserved-by-user {
+            background-color: #007bff;
+            color: #fff;
+            pointer-events: none;
+        }
+        .button-container {
+            margin: 20px 0;
+        }
+        /* Container flexível para o total e o botão */
+        .total-button-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            max-width: 600px;
+            margin: 0 auto; /* Centraliza o container */
+        }
+        .total {
+            font-weight: bold;
+            font-size: 22px;
+            color: #333;
+            margin-right: 10px;
+        }
+        .confirm-button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin: 10px, 10px;
+            font-size: 18px;
+        }
+        .confirm-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        p {
+            font-size: 20px;
+            color: #555;
+            margin: 10px 0;
+        }
+        /* Novo campo de texto para o usuário atual */
+        .user-info {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        /* Tornar o layout responsivo para dispositivos móveis */
+        @media (max-width: 600px) {
+            .total-button-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .total {
+                margin-bottom: 10px;
+                text-align: center;
+            }
+            .confirm-button {
+                width: 100%;
+            }
+        }
+    </style>
+    <script>
+        let unitPrice = 0;
+        const selectedNumbers = new Set();
+        let availableNumbers = [];
+        const reservedNumbers = new Set();
+        const reservedByUser = new Map(); // Armazena os números reservados e quem os reservou
+        
+        let currentUser = localStorage.getItem('currentUser'); // Nome do usuário logado
+
+        // Atualiza a exibição do usuário logado no topo da página
+        function displayCurrentUser() {
+            // Atualiza sempre o nome do usuário logado ao carregar a página
+            currentUser = localStorage.getItem('currentUser');
+            const userInfo = document.getElementById('userInfo');
+            if (currentUser) {
+                userInfo.textContent = `Usuário Conectado: ${currentUser}`;
+            } else {
+                userInfo.textContent = 'Usuário: Não identificado';
+            }
+        }
+
+        async function fetchNumbers() {
+            try {
+                const response = await fetch('https://sheetdb.io/api/v1/sdqbrsofxzfpu');
+                const data = await response.json();
+                
+                unitPrice = data[0].valor_rifa;
+                document.getElementById('rifaValue').textContent = unitPrice;
+
+                availableNumbers = data.map(item => parseInt(item.numeros));
+                data.forEach(item => {
+                    if (item.reservado) {
+                        reservedNumbers.add(parseInt(item.numeros));
+                        reservedByUser.set(parseInt(item.numeros), item.usuario); // Armazena quem reservou o número
+                    }
+                });
+                populateGrid();
+            } catch (error) {
+                console.error("Erro ao buscar números da API", error);
+            }
+        }
+
+        function populateGrid() {
+            const gridContainer = document.querySelector('.grid-container');
+            gridContainer.innerHTML = '';
+
+            availableNumbers.forEach(number => {
+                const gridItem = document.createElement('div');
+                gridItem.classList.add('grid-item');
+
+                if (reservedNumbers.has(number)) {
+                    if (reservedByUser.get(number) === currentUser) {
+                        gridItem.classList.add('reserved-by-user'); // Se o usuário atual reservou, exibir na cor azul
+                    } else {
+                        gridItem.classList.add('reserved'); // Se não, exibir na cor laranja
+                    }
+                } else {
+                    gridItem.onclick = () => toggleNumber(number);
+                }
+
+                gridItem.textContent = number;
+                gridContainer.appendChild(gridItem);
+            });
+        }
+
+        function toggleNumber(number) {
+            if (selectedNumbers.has(number)) {
+                selectedNumbers.delete(number);
+            } else {
+                selectedNumbers.add(number);
+            }
+            updateTotal();
+            updateGrid();
+            updateConfirmButton();
+        }
+
+        function updateTotal() {
+            const total = selectedNumbers.size * unitPrice;
+            document.getElementById('totalValue').textContent = `Total: R$${total}`;
+        }
+
+        function updateGrid() {
+            const gridItems = document.querySelectorAll('.grid-item');
+            gridItems.forEach(item => {
+                const number = parseInt(item.textContent);
+                if (selectedNumbers.has(number)) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+
+        function updateConfirmButton() {
+            const confirmButton = document.querySelector('.confirm-button');
+            if (selectedNumbers.size > 0) {
+                confirmButton.disabled = false;
+            } else {
+                confirmButton.disabled = true;
+            }
+        }
+
+        async function confirmSelection() {
+            const selectedArray = Array.from(selectedNumbers);
+            const totalPayment = selectedArray.length * unitPrice;
+
+            // Enviar números reservados para a API
+            for (const number of selectedArray) {
+                await reserveNumber(number);
+            }
+
+            localStorage.setItem('selectedNumbers', JSON.stringify(selectedArray));
+            localStorage.setItem('totalPayment', totalPayment);
+            localStorage.setItem('currentUser', currentUser); // Salvar nome do usuário mais recente
+
+            window.location.href = 'pay.html';
+        }
+
+        async function reserveNumber(number) {
+            const response = await fetch(`https://sheetdb.io/api/v1/sdqbrsofxzfpu?numeros=${number}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    data: [
+                        { numeros: number, reservado: true, usuario: currentUser }
+                    ]
+                })
+            });
+            if (!response.ok) {
+                console.error("Erro ao reservar número:", number);
+            }
+        }
+
+        window.onload = () => {
+            displayCurrentUser(); // Exibir o nome do usuário no topo
+            fetchNumbers(); // Carregar os números da API
+        };
+    </script>
+</head>
+<body>
+    <h1>Rifon - Cartela Numérica</h1>
+    <div class="user-info" id="userInfo"></div> <!-- Exibe o nome do usuário logado -->
+    <h2>Prêmios: 1° R$ 800 | 2° R$ 200 | 3° R$ 100</h2>
+    <p>Valor por número: R$<span id="rifaValue">0</span></p>
+    
+    <!-- Container para o total e o botão, responsivo -->
+    <div class="total-button-container">
+        <p class="total" id="totalValue">Total: R$0</p>
+        <button class="confirm-button" onclick="confirmSelection()" disabled>Confirmar Seleção</button>
+    </div>
+
+    <div class="grid-container"></div>
+</body>
+</html>

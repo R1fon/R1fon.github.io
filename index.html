@@ -1,0 +1,234 @@
+<!DOCTYPE html> 
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>R1fon - Login</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/128/2130/2130070.png" type="image/x-icon">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            margin: 0 20px; /* Espaçamento lateral */
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px 0;
+            width: 100%;
+            box-sizing: border-box; /* Inclui padding no tamanho total */
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .char-limit {
+            font-size: 12px;
+            color: red;
+        }
+
+        .button-container {
+            margin: 20px 0;
+        }
+
+        .button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 18px;
+            opacity: 0.5;
+            width: 100%;
+        }
+
+        .button:enabled {
+            opacity: 1;
+        }
+
+        .button:hover:enabled {
+            background-color: #0056b3;
+        }
+
+        .error {
+            color: red;
+            font-size: 16px;
+        }
+
+        .success {
+            color: green;
+            font-size: 16px;
+        }
+
+        @media (max-width: 600px) {
+            input {
+                width: 100%;
+            }
+
+            .container {
+                padding: 15px;
+            }
+        }
+    </style>
+    <script>
+        let users = {};
+
+        // Carrega a lista de usuários e senhas da API quando a página é carregada
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch('https://sheetdb.io/api/v1/ogfhd7pmrbvc1')
+                .then(response => response.json())
+                .then(data => {
+                    users = data.reduce((acc, user) => {
+                        acc[user.usuario] = user.senha;
+                        return acc;
+                    }, {});
+
+                    // Recupera o nome de usuário e senha do localStorage
+                    const savedUser = localStorage.getItem('currentUser');
+                    const savedPassword = localStorage.getItem('currentPassword');
+                    
+                    if (savedUser) {
+                        document.getElementById('username').value = savedUser;
+                    }
+
+                    if (savedPassword) {
+                        document.getElementById('password').value = savedPassword;
+                    }
+
+                    // Chama a função de validação para habilitar o botão, se necessário
+                    validateInputs();
+                });
+        });
+
+        // Valida os campos de entrada
+        function validateInputs() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const button = document.getElementById('submitBtn');
+            const usernameLimit = document.getElementById('username-limit');
+            const passwordLimit = document.getElementById('password-limit');
+
+            if (username.length >= 5 && username.length <= 10) {
+                usernameLimit.textContent = '';
+            } else if (username.length > 10) {
+                usernameLimit.textContent = 'Limite de caracteres atingido!';
+                document.getElementById('username').value = username.substring(0, 10);
+            }
+
+            if (password.length >= 4 && password.length <= 8) {
+                passwordLimit.textContent = '';
+            } else if (password.length > 8) {
+                passwordLimit.textContent = 'Limite de caracteres atingido!';
+                document.getElementById('password').value = password.substring(0, 8);
+            }
+
+            // Verifica se os campos foram preenchidos corretamente
+            if (username.length >= 5 && password.length >= 4) {
+                button.disabled = false;
+                button.style.opacity = '1';
+            } else {
+                button.disabled = true;
+                button.style.opacity = '0.5';
+            }
+        }
+
+        // Função que registra ou faz login do usuário
+        function registerOrLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const message = document.getElementById('message');
+
+            // Salva nome de usuário e senha no localStorage
+            localStorage.setItem('currentUser', username);
+            localStorage.setItem('currentPassword', password); // Apenas para este exemplo; evite armazenar senhas
+
+            if (username in users) {
+                if (users[username] === password) {
+                    // Usuário existe e senha está correta
+                    message.textContent = 'Login bem-sucedido!';
+                    message.className = 'success';
+                    setTimeout(() => {
+                        window.location.href = 'grid.html'; // Redireciona para a próxima página
+                    }, 1000);
+                } else {
+                    message.textContent = 'Nome de usuário já em uso ou Senha incorreta!';
+                    message.className = 'error';
+                }
+            } else {
+                if (username && password) {
+                    // Cadastrar novo usuário
+                    fetch('https://sheetdb.io/api/v1/ogfhd7pmrbvc1', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ "data": { "usuario": username, "senha": password } })
+                    }).then(response => response.json())
+                      .then(() => {
+                          message.textContent = 'Cadastro bem-sucedido! Redirecionando...';
+                          message.className = 'success';
+                          setTimeout(() => {
+                              window.location.href = 'grid.html'; // Redireciona para a próxima página
+                          }, 1000);
+                      });
+                } else {
+                    message.textContent = 'Por favor, preencha todos os campos.';
+                    message.className = 'error';
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Bem-vindo ao Rifon</h1>
+        <h2>Crie ou Entre com uma conta Existente</h2>
+        <p>A criação da conta é para garantir o acesso aos números. Lembre-se do nome de usuário e senha!</p>
+
+        <input type="text" id="username" placeholder="Nome de usuário (5-10 caracteres)" required oninput="validateInputs()" maxlength="10">
+        <p id="username-limit" class="char-limit"></p>
+
+        <input type="password" id="password" placeholder="Senha (4-8 caracteres)" required oninput="validateInputs()" maxlength="8">
+        <p id="password-limit" class="char-limit"></p>
+
+        <div class="button-container">
+            <button class="button" id="submitBtn" onclick="registerOrLogin()" disabled>Criar Conta/Entrar</button>
+        </div>
+        
+        <p id="message"></p>
+    </div>
+</body>
+</html>
