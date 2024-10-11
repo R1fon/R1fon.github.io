@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>R1fon - Cartela</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/128/2130/2130070.png" type="image/x-icon">
+    <link rel="stylesheet" href="styles.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <h1>RIFA PIX PREMIADO</h1>
+    <div class="user-info" id="userInfo"></div> <!-- Exibe o nome do usuário logado -->
+    <h2>Prêmios: 1°R$ 300 | 2°R$ 100</h2>
+    <h3>Compre um número e ganhe mais dois números!</h3>
+    <h4>Exemplo, ao comprar o número 2, você também recebe os números 1 e 3.</h4>
+    <p>Valor por número: R$<span id="rifaValue">0</span></p>
+    
+    <!-- Container para o total e o botão, responsivo -->
+    <div class="total-button-container">
+        <p class="total" id="totalValue">Total: R$0</p>
+        <button class="confirm-button" onclick="confirmSelection()" disabled>Confirmar Seleção</button>
+    </div>
+
+    <div class="grid-container"></div>
+</body>
+</html>

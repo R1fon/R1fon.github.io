@@ -1,0 +1,121 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 20px;
+}
+h1 {
+    color: #333;
+    margin-bottom: 5px;
+}
+h2 {
+    color: #067850;
+    margin-bottom: 10px;
+    font-size: 1.1em;
+}
+h3 {
+    color: #767575;
+    margin-bottom: 10px;
+    font-size: 1.0em;
+}
+h4 {
+    color: #767575;
+    margin-bottom: 10px;
+    font-size: 1.0em;
+}
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 10px;
+    max-width: 600px;
+    margin: 0 auto;
+    justify-content: center;
+    margin-top: 10px;
+    margin-bottom: 20px; /* Aumentado o espaçamento entre o grid e o botão */
+}
+.grid-item {
+    border: 2px solid #007bff;
+    border-radius: 10px;
+    padding: 15px;
+    font-size: 24px;
+    color: #333;
+    background-color: #fff;
+    transition: background-color 0.3s, transform 0.3s;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.grid-item:hover {
+    transform: scale(1.05);
+}
+.selected {
+    background-color: #009833;
+    border: 2px solid #009833;
+    color: #fff;
+}
+.reserved {
+    background-color: rgb(173, 0, 0);
+    border: 2px solid rgb(173, 0, 0);
+    color: #fff;
+    pointer-events: none;
+}
+.reserved-by-user {
+    background-color: #007bff;
+    color: #fff;
+    pointer-events: none;
+}
+.button-container {
+    margin: 20px 0;
+}
+/* Container flexível para o total e o botão */
+.total-button-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    max-width: 600px;
+    margin: 0 auto; /* Centraliza o container */
+}
+.total {
+    font-weight: bold;
+    font-size: 22px;
+    color: #333;
+    margin-right: 10px;
+}
+.confirm-button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin: 10px, 10px;
+    font-size: 18px;
+}
+.confirm-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+p {
+    font-size: 20px;
+    color: #555;
+    margin: 10px 0;
+}
+
+/* Tornar o layout responsivo para dispositivos móveis */
+@media (max-width: 600px) {
+    .total-button-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .total {
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    .confirm-button {
+        width: 100%;
+    }
+}
